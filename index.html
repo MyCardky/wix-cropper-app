@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Cropper</title>
+    <!-- 外部样式表 -->
     <link
       rel="stylesheet"
       href="https://use.fontawesome.com/releases/v5.11.2/css/all.css"
@@ -20,23 +21,26 @@
       href="https://unpkg.com/cropperjs/dist/cropper.css"
       crossorigin="anonymous"
     />
+    <!-- 自定义样式表 -->
+    <link rel="stylesheet" href="style.css" />
 
     <style>
-      /* !important */
+      /* 内联样式 */
       .container {
         margin: auto;
         height: 100vh;
-        padding: 0px;
+        padding: 0;
         overflow: hidden;
       }
       .img-container {
-        /* width: 500px; */
-        left: 50%;
         margin: auto;
         height: 90vh;
         max-height: 90vh;
         min-height: 90vh;
         overflow: auto;
+        background-color: #ffffff;
+        text-align: center;
+        width: 100%;
       }
       .btn-tray {
         margin: auto;
@@ -45,85 +49,35 @@
         max-height: 10vh;
         min-height: 10vh;
         display: flex;
-        /* z-index: 100; */
       }
       .btn {
         width: 180px;
-        border-radius: 0%;
-      }
-      .btn-back {
-        float: left;
+        border-radius: 0;
       }
       .btn-crop {
-        margin: auto ;
-        /* width: 100%; */
+        margin: auto;
       }
       .col-sm {
-        padding: 0px;
+        padding: 0;
       }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      /* Slideshow container */
       .slideshow-container {
         max-width: 1000px;
         position: relative;
         margin: auto;
       }
-
-      /* Hide the images by default */
       .mySlides {
         display: none;
       }
-      /* Fading animation */
       .fadeIn {
-        -webkit-animation-name: fade;
-        -webkit-animation-duration: 1.5s;
-        animation-name: fade;
-        animation-duration: 1.5s;
+        animation: fade 1.5s;
       }
-      #myOutput {
-        width: 70%;
-      }
-
       canvas {
-        margin: 20px 0px;
-        left: 50%;
+        margin: 20px 0;
         border: 1px solid black;
-        /* max-width: 70%; */
-        /* min-width: 50%; */
-        /* max-height: 80vh; */
       }
-      .img-container {
-        background-color: #ffffff;
-        text-align: center;
-        width: 100%;
-      }
-
-      .img-container {
-        /* margin-bottom: 1rem; */
-        max-height: 497px;
-        min-height: 200px;
-      }
-
-      @-webkit-keyframes fade {
-        from {
-          opacity: 0.4;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
       @keyframes fade {
-        from {
-          opacity: 0.4;
-        }
-        to {
-          opacity: 1;
-        }
+        from { opacity: 0.4; }
+        to { opacity: 1; }
       }
     </style>
   </head>
@@ -131,19 +85,25 @@
   <body>
     <div class="container">
       <div class="slideshow-container">
+        <!-- 裁剪界面 -->
         <div class="mySlides fadeIn">
           <div class="img-container">
-            <img id="image" crossorigin="anonymous" src="images/default.png" alt="Picture" />
+            <img
+              id="image"
+              crossorigin="anonymous"
+              src="images/default.png"
+              alt="Picture"
+            />
           </div>
         </div>
+        <!-- 裁剪结果预览 -->
         <div class="mySlides fadeIn">
           <div class="img-container" id="img-cropped">
-            <div class="dummy" style="height:20vh"></div>
-            <!-- <canvas id="myOutput"></canvas> -->
-            <!-- <img id="img-cropped" /> -->
+            <div class="dummy" style="height: 20vh;"></div>
           </div>
         </div>
 
+        <!-- 按钮栏 -->
         <div class="btn-tray">
           <div class="back-btn" id="back-btn" onclick="plusSlides(-1)">
             <button class="btn btn-secondary">Back</button>
@@ -158,53 +118,47 @@
       </div>
     </div>
 
+    <!-- 幻灯片切换脚本 -->
     <script>
       var slideIndex = 1;
       showSlides(slideIndex);
 
-      // Next/previous controls
       function plusSlides(n) {
         showSlides((slideIndex += n));
       }
 
-      // Thumbnail image controls
       function currentSlide(n) {
         showSlides((slideIndex = n));
       }
 
       function showSlides(n) {
-        let i;
         let slides = document.getElementsByClassName("mySlides");
         let btnCrop = document.getElementById('crop-btn');
         let btnUpload = document.getElementById('upload-btn');
         let btnBack = document.getElementById('back-btn');
 
-        if (n > slides.length) {
-          slideIndex = 1;
-        }
-        if (n < 1) {
-          slideIndex = slides.length;
-        }
-        for (i = 0; i < slides.length; i++) {
+        if (n > slides.length) slideIndex = 1;
+        if (n < 1) slideIndex = slides.length;
+
+        for (let i = 0; i < slides.length; i++) {
           slides[i].style.display = "none";
         }
 
-
-        if(slideIndex === 1) {
-          btnBack.style.display = "none"
-          btnCrop.style.display = "block"
-          btnUpload.style.display = "none"
-        } else if(slideIndex === 2) {
-          btnBack.style.display = "block"
-          btnCrop.style.display = "none"
-          btnUpload.style.display = "block"
+        if (slideIndex === 1) {
+          btnBack.style.display = "none";
+          btnCrop.style.display = "block";
+          btnUpload.style.display = "none";
+        } else if (slideIndex === 2) {
+          btnBack.style.display = "block";
+          btnCrop.style.display = "none";
+          btnUpload.style.display = "block";
         }
 
         slides[slideIndex - 1].style.display = "block";
       }
-
-      //img-cropped
     </script>
+
+    <!-- 外部脚本 -->
     <script
       defer
       src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
