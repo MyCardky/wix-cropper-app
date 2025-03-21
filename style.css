@@ -1,8 +1,8 @@
 .cropper-crop-box, .cropper-view-box {
-  border-radius: 50%; /* 显示为圆形 */
-  width: 200px !important; /* 固定宽度 */
-  height: 200px !important; /* 固定高度 */
+  border-radius: 50% !important;
+  width: 200px !important;
+  height: 200px !important;
 }
 .cropper-face {
-  border-radius: 50%; /* 裁剪区域圆形 */
+  border-radius: 50% !important;
 }
