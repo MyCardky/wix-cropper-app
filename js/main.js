@@ -1,86 +1,125 @@
-// $(function () {
+$(function () {
+  const $image = $('#image');
+  const $imageCropped = $('#img-cropped');
+  const $uploadBtn = $('#upload-btn');
+  const $cropBtn = $('#crop-btn');
 
-    const $image = $('#image');
-    const $imageCropped = $('#img-cropped');
-    const $uploadBtn = $('#upload-btn');
-    const $cropBtn =  $('#crop-btn');
+  // 默认设置：200px 圆形裁剪
+  let imageHeight = 200; // 裁剪高度 200px
+  let imageWidth = 200;  // 裁剪宽度 200px
+  let aspectRatio = 1;   // 正方形比例 (1:1)
+  let fillColor = "#fff"; // 填充颜色
+  let cropper;           // Cropper 实例
+  let canvas;            // Canvas 对象
 
-    //default setting
-    let imageHeight = 520;
-    let imageWidth = 240;
-    let aspectRatio = 5 / 7;
-    let fillColor = "#fff";
-
-    cropperInit();
-
-    function cropperInit() {
-        $image.cropper({
-        aspectRatio: aspectRatio,
-        crop: function(event) {
-                canvas = $image.cropper("getCroppedCanvas", {
-                    fillColor: fillColor,
-                    maxWidth:700
-                });        
-            }
+  // 初始化 Cropper
+  function cropperInit() {
+    cropper = $image.cropper({
+      aspectRatio: aspectRatio,
+      viewMode: 1,             // 限制裁剪框在图片内
+      cropBoxResizable: false, // 禁止调整裁剪框大小
+      cropBoxMovable: true,    // 允许移动裁剪框
+      dragMode: 'move',        // 允许拖动图片
+      minCropBoxWidth: 200,    // 固定裁剪框宽度 200px
+      minCropBoxHeight: 200,   // 固定裁剪框高度 200px
+      crop: function(event) {
+        canvas = $image.cropper("getCroppedCanvas", {
+          width: 200,          // 输出宽度 200px
+          height: 200,         // 输出高度 200px
+          fillColor: fillColor
         });
-    }
-
-    function cropperDestory() {
-        $image.cropper("destroy"); 
-    }
-
-    $cropBtn.click(function(e){
-        $("#img-cropped").empty();
-        $imageCropped.append(canvas);
+      }
     });
+  }
 
-    $uploadBtn.click(function(e) {
-        const base64 = canvas.toDataURL();
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.getImageData(0,0,imageWidth, imageHeight);
-        const buffer = imageData.data.buffer;  
-        // console.log("uploading...");
-        // console.log({canvasData, buffer, imageData});
-         // sending both base64 and buffer we can only send one type
-        sendData({buffer, base64});
-    });
-
-
-    function sendData(data) {
-        let msg = {
-            "isCropper" : true,
-        }
-        msg = {...msg, ...data};
-        console.log("message : " , msg);
-        window.parent.postMessage(msg, "*");
+  // 销毁 Cropper
+  function cropperDestroy() {
+    if (cropper) {
+      $image.cropper("destroy");
+      cropper = null;
     }
+  }
 
-    function updateCropperImage(url) {
-        $image.attr("src" , url);
-        refreshCropper();
+  // 点击裁剪按钮，显示裁剪结果
+  $cropBtn.click(function(e) {
+    $("#img-cropped").empty();
+    if (canvas) {
+      // 创建圆形裁剪结果
+      const roundedCanvas = document.createElement('canvas');
+      const ctx = roundedCanvas.getContext('2d');
+      roundedCanvas.width = 200;
+      roundedCanvas.height = 200;
+      ctx.beginPath();
+      ctx.arc(100, 100, 100, 0, Math.PI * 2, true); // 绘制 200px 直径圆形
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(canvas, 0, 0, 200, 200);
+      $imageCropped.append(roundedCanvas);
     }
+  });
 
-    function refreshCropper() {
-        cropperDestory();
-        cropperInit();
+  // 点击上传按钮，发送裁剪数据
+  $uploadBtn.click(function(e) {
+    if (canvas) {
+      const roundedCanvas = document.createElement('canvas');
+      const ctx = roundedCanvas.getContext('2d');
+      roundedCanvas.width = 200;
+      roundedCanvas.height = 200;
+      ctx.beginPath();
+      ctx.arc(100, 100, 100, 0, Math.PI * 2, true); // 绘制圆形
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(canvas, 0, 0, 200, 200);
+
+      const base64 = roundedCanvas.toDataURL('image/png');
+      const imageData = ctx.getImageData(0, 0, 200, 200);
+      const buffer = imageData.data.buffer;
+
+      sendData({ buffer, base64 });
     }
+  });
 
-    window.onmessage = e => {
-        let {data} = e;
-        if(data.toUpdateImageURL) {
-            let url = data.updateImageURL;
-            updateCropperImage(url);
-        }  else if(data.initSetting) {
-            let {aspectRatio:asptRatio , fillColor: backgroundColor,
-                imageHeight:imgH, imageWidth:imgW, noAspectRatio} = data.setting;
-            if(asptRatio) aspectRatio = asptRatio;
-            if(backgroundColor) fillColor = backgroundColor;
-            if(noAspectRatio) aspectRatio = NaN;
-            if(imgH) imageHeight = imgH;
-            if(imgW) imageWidth = imgW;
-            refreshCropper();
-        }
+  // 发送数据到 Wix
+  function sendData(data) {
+    let msg = {
+      "isCropper": true
+    };
+    msg = { ...msg, ...data };
+    console.log("Sending message:", msg);
+    window.parent.postMessage(msg, "*");
+  }
+
+  // 更新图片并刷新 Cropper
+  function updateCropperImage(url) {
+    $image.attr("src", url);
+    refreshCropper();
+  }
+
+  // 刷新 Cropper
+  function refreshCropper() {
+    cropperDestroy();
+    cropperInit();
+  }
+
+  // 监听 Wix 传来的消息
+  window.onmessage = e => {
+    let { data } = e;
+    if (data.toUpdateImageURL) {
+      let url = data.updateImageURL;
+      updateCropperImage(url);
+    } else if (data.initSetting) {
+      let { aspectRatio: asptRatio, fillColor: backgroundColor, 
+            imageHeight: imgH, imageWidth: imgW, noAspectRatio } = data;
+      aspectRatio = asptRatio || 1;         // 默认 1:1
+      fillColor = backgroundColor || "#fff"; // 默认白色
+      imageHeight = imgH || 200;            // 默认 200px
+      imageWidth = imgW || 200;             // 默认 200px
+      if (noAspectRatio) aspectRatio = NaN;
+      refreshCropper();
     }
+  };
 
-    sendData({ready: true});
-// });
+  // 初始化 Cropper 并通知 Wix 已准备好
+  cropperInit();
+  sendData({ ready: true });
+});
